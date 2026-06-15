@@ -164,11 +164,11 @@
   </div>
 
   <div class="input-group">
-    <label id="marcatoriLabelA">MARCATORI A (uno per riga)</label>
+    <label id="marcatoriLabelA">MARCATORI A (uno per riga, es. Mario x2)</label>
     <textarea id="marcatoriA"></textarea>
   </div>
   <div class="input-group">
-    <label id="marcatoriLabelB">MARCATORI B (uno per riga)</label>
+    <label id="marcatoriLabelB">MARCATORI B (uno per riga, es. Mario x2)</label>
     <textarea id="marcatoriB"></textarea>
   </div>
   <div class="input-group">
@@ -182,7 +182,7 @@
 <script>
 // ==========================================
 // IMPORTANTE: INSERISCI QUI IL LINK DEL TUO SCRIPT GOOGLE!
-const API_URL = "https://script.google.com/macros/s/AKfycbyiz8z3Y1Tmal3KIF3VkuyAZJFeG-jvwD9_zgn64bfLIQR8wMFUzCdrClKdzTZO-IQC/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbwxmtamgisoXvQMh5cimGxIzMDRc0q_WBzby-6lEJngUMUwFx_XqTtuWybEti4vLimY/exec";
 // ==========================================
 
 let allMatches = [];      
@@ -290,7 +290,6 @@ function loadAllMatches() {
       else document.getElementById('matchesList').innerHTML = `<div style="text-align:center; padding:20px; color:var(--red);">Errore: ${data.errorMsg}</div>`;
     })
     .catch(err => {
-       // Questo intercetta l'errore del deployment sbagliato e rimuove lo spinner infinito!
        document.getElementById('matchesList').innerHTML = `<div style="text-align:center; padding:20px; color:var(--red);">Impossibile connettersi al Database.<br><br>Assicurati di aver fatto <b>"Nuova Distribuzione"</b> su Google Script!</div>`;
        showToast("Errore server", true);
     });
@@ -474,15 +473,22 @@ function renderMarcatoriClassifica() {
       let mB = m.marcatoriB ? m.marcatoriB.split('\n') : [];
       let allScorers = mA.concat(mB);
 
-      allScorers.forEach(name => {
-        name = name.trim();
-        if (name !== "") {
-          let normalized = name.toLowerCase().replace(/\b\w/g, l => l.toUpperCase());
-          
-          if (!scorerCounts[normalized]) {
-            scorerCounts[normalized] = 0;
+      allScorers.forEach(entry => {
+        entry = entry.trim();
+        if (entry !== "") {
+          // Utilizza un'espressione regolare per separare il nome dall'eventuale moltiplicatore (es. "x2" o "X 3")
+          let match = entry.match(/^(.*?)(?:\s*[xX*]\s*(\d+))?$/);
+          let name = match[1].trim();
+          let count = match[2] ? parseInt(match[2], 10) : 1;
+
+          if (name !== "") {
+            let normalized = name.toLowerCase().replace(/\b\w/g, l => l.toUpperCase());
+            
+            if (!scorerCounts[normalized]) {
+              scorerCounts[normalized] = 0;
+            }
+            scorerCounts[normalized] += count;
           }
-          scorerCounts[normalized]++;
         }
       });
     }
